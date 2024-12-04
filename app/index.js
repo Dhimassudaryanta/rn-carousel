@@ -1,13 +1,13 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   View,
   Text,
   Image,
   StyleSheet,
-  FlatList,
   Dimensions,
   Animated,
   TouchableOpacity,
+  FlatList,
 } from "react-native";
 
 const { width, height } = Dimensions.get("window");
@@ -44,23 +44,8 @@ const AnimatedFlatList = Animated.createAnimatedComponent(FlatList);
 
 export default function Index() {
   const [currentIndex, setCurrentIndex] = useState(0); // Track current index for carousel
-  const scrollX = new Animated.Value(0); // Used for animated transitions
-  const intervalRef = React.useRef(null); // Reference to clear autoplay interval
-
-  // Auto-play the carousel after 3 seconds
-  useEffect(() => {
-    intervalRef.current = setInterval(() => {
-      if (currentIndex < images.length - 1) {
-        setCurrentIndex((prevIndex) => prevIndex + 1);
-      } else {
-        setCurrentIndex(0); // Loop back to the first item
-      }
-    }, 3000);
-
-    return () => {
-      clearInterval(intervalRef.current); // Clean up the interval
-    };
-  }, [currentIndex]);
+  const scrollX = useRef(new Animated.Value(0)).current; // Used for animated transitions
+  const flatListRef = useRef(null); // Reference to the FlatList
 
   // Render individual carousel item
   const renderItem = ({ item, index }) => {
@@ -73,7 +58,6 @@ export default function Index() {
       outputRange: [0.8, 1, 0.8],
       extrapolate: "clamp",
     });
-    console.log("cek scale", scale, index);
 
     return (
       <Animated.View style={[styles.item, { transform: [{ scale }] }]}>
@@ -82,43 +66,82 @@ export default function Index() {
     );
   };
 
+  // Handle Next button click
   const handleNext = () => {
-    setCurrentIndex((prevIndex) => (prevIndex + 1) % images.length);
+    const nextIndex = (currentIndex + 1) % images.length;
+    setCurrentIndex(nextIndex);
+    flatListRef.current.scrollToIndex({ animated: true, index: nextIndex });
+
+    // Manually update scrollX after scrolling
+    Animated.spring(scrollX, {
+      toValue: (nextIndex * width) / 2, // Set scrollX to the correct position
+      useNativeDriver: true,
+    }).start();
   };
 
+  // Handle Prev button click
   const handlePrev = () => {
-    setCurrentIndex(
-      (prevIndex) => (prevIndex - 1 + images.length) % images.length
-    );
+    const prevIndex = (currentIndex - 1 + images.length) % images.length;
+    setCurrentIndex(prevIndex);
+    flatListRef.current.scrollToIndex({ animated: true, index: prevIndex });
+
+    // Manually update scrollX after scrolling
+    Animated.spring(scrollX, {
+      toValue: (prevIndex * width) / 2, // Set scrollX to the correct position
+      useNativeDriver: true,
+    }).start();
   };
+
+  // Handle scroll event to update the index
+  const handleScroll = Animated.event(
+    [{ nativeEvent: { contentOffset: { x: scrollX } } }],
+    { useNativeDriver: false } // Not using native driver because we want to update the index
+  );
+
+  // // Update the current index when scrolling
+  // useEffect(() => {
+  //   const listener = scrollX.addListener(({ value }) => {
+  //     const newIndex = Math.floor(value / width);
+  //     if (newIndex !== currentIndex) {
+  //       setCurrentIndex(newIndex);
+  //     }
+  //   });
+
+  //   // Cleanup listener when the component unmounts
+  //   return () => {
+  //     scrollX.removeListener(listener);
+  //   };
+  // }, [scrollX, currentIndex]);
+
+  console.log("cek ya", currentIndex);
 
   return (
-    <View
-      style={{
-        flex: 1,
-        justifyContent: "center",
-        alignItems: "center",
-      }}
-    >
-      <View style={styles.container}>
+    <View style={styles.container}>
+      <View style={styles.carouselContainer}>
         <AnimatedFlatList
+          ref={flatListRef}
           data={images}
           renderItem={renderItem}
           keyExtractor={(item) => item.id}
           horizontal
           showsHorizontalScrollIndicator={false}
-          pagingEnabled
+          // scrollEnabled={false} // Disable default scrolling behavior
+          onScroll={handleScroll} // Track scrolling
           scrollEventThrottle={16} // Smooth scrolling
-          onScroll={Animated.event(
-            [{ nativeEvent: { contentOffset: { x: scrollX } } }],
-            { useNativeDriver: true }
-          )}
-          contentContainerStyle={[styles.carousel]}
-          style={{ width: width, borderWidth: 1, borderColor: "yellow" }}
+          contentContainerStyle={styles.carousel}
           initialScrollIndex={currentIndex}
+          snapToInterval={width / 2} // Snap to each item
+          decelerationRate="fast"
         />
 
-        {/* Navigation buttons */}
+        <View style={styles.buttons}>
+          <TouchableOpacity style={styles.button} onPress={handlePrev}>
+            <Text style={styles.buttonText}>Prev</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.button} onPress={handleNext}>
+            <Text style={styles.buttonText}>Next</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     </View>
   );
@@ -130,25 +153,27 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
+  carouselContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+  },
   carousel: {
-    alignItems: "flex-center",
+    alignItems: "center",
   },
   item: {
     justifyContent: "center",
     alignItems: "center",
     width: width / 2,
-    // marginHorizontal: 10,
   },
   image: {
-    width: width / 2, // Image width minus padding
+    width: width / 2,
     height: 250,
     borderRadius: 10,
     resizeMode: "cover",
   },
   buttons: {
     flexDirection: "row",
-    position: "absolute",
-    bottom: 10,
+    marginTop: 20,
     justifyContent: "space-between",
     width: width - 40,
   },
