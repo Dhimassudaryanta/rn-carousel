@@ -6,9 +6,7 @@ https://github.com/user-attachments/assets/be74a587-f38a-4d0e-ba4b-f7fe921cf1ce
 
 This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
 
-## React Native Carousel
-
-## How to install
+## React Native Carousel & How to install
 
 1. Clone the project 
    ```bash
@@ -34,6 +32,7 @@ In the output, you'll find options to open the app in a
 - [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
 
 
-
+## Submission Documentation
+[Google doc](https://docs.google.com/document/d/1lOxAO-9k2oR0mCWjvI_tKce5Z-zluGwVm4Lsa3zyLak/edit?addon_store&tab=t.0)
 
 
