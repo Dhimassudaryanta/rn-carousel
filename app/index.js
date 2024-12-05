@@ -9,43 +9,44 @@ import {
   TouchableOpacity,
   FlatList,
 } from "react-native";
+import images from "./utils/images";
 
 const { width, height } = Dimensions.get("window");
 
-// Example images
-const images = [
-  {
-    id: "1",
-    source: "https://picsum.photos/600/400?random=1",
-  },
-  {
-    id: "2",
-    source: "https://picsum.photos/600/400?random=2",
-  },
-  {
-    id: "3",
-    source: "https://picsum.photos/600/400?random=3",
-  },
-  {
-    id: "4",
-    source: "https://picsum.photos/600/400?random=4",
-  },
-  {
-    id: "5",
-    source: "https://picsum.photos/600/400?random=5",
-  },
-  {
-    id: "6",
-    source: "https://picsum.photos/600/400?random=6",
-  },
-];
-
 const AnimatedFlatList = Animated.createAnimatedComponent(FlatList);
+const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
 
 export default function Index() {
   const [currentIndex, setCurrentIndex] = useState(0); // Track current index for carousel
   const scrollX = useRef(new Animated.Value(0)).current; // Used for animated transitions
   const flatListRef = useRef(null); // Reference to the FlatList
+
+  // State to control the visibility of the overlay
+  const [overlayVisible, setOverlayVisible] = useState(false);
+
+  // Animated values for the overlay animation
+  const overlayAnim = useState(new Animated.Value(0))[0]; // Starting at 0 (not visible)
+
+  // Function to toggle the overlay visibility and animate
+  const toggleOverlay = () => {
+    setOverlayVisible(true);
+
+    // Animate the overlay to expand and cover the entire screen
+    Animated.timing(overlayAnim, {
+      toValue: 1,
+      duration: 500, // Duration of the animation
+      useNativeDriver: true,
+    }).start();
+  };
+
+  // Function to hide the overlay with a reverse animation
+  const hideOverlay = () => {
+    Animated.timing(overlayAnim, {
+      toValue: 0,
+      duration: 500,
+      useNativeDriver: true,
+    }).start(() => setOverlayVisible(false)); // Hide the overlay after animation
+  };
 
   // Render individual carousel item
   const renderItem = ({ item, index }) => {
@@ -55,26 +56,26 @@ export default function Index() {
         (index * width) / 2,
         ((index + 1) * width) / 2,
       ],
-      outputRange: [0.8, 1, 0.8],
+      outputRange: [0.75, 1, 0.75],
       extrapolate: "clamp",
     });
 
     return (
       <Animated.View
+        disabled={index !== currentIndex}
         style={[
           styles.item,
           {
             transform: [{ scale }],
             paddingLeft: index === 0 ? width / 2 : width / 4,
             paddingRight: index === images.length - 1 ? width / 2 : width / 4,
-
-            // paddingLeft: width / 2,
-            // paddingRight: width / 2,
             width: width / 4,
           },
         ]}
       >
-        <Image source={{ uri: item.source }} style={styles.image} />
+        <AnimatedTouchable onPress={() => toggleOverlay()} style={styles.item}>
+          <Image source={{ uri: item.source }} style={styles.image} />
+        </AnimatedTouchable>
       </Animated.View>
     );
   };
@@ -82,7 +83,7 @@ export default function Index() {
   // Handle Next button click
   const handleNext = () => {
     const nextIndex = (currentIndex + 1) % images.length;
-    setCurrentIndex(nextIndex);
+    // setCurrentIndex(nextIndex);
     flatListRef.current.scrollToIndex({
       animated: true,
       index: nextIndex,
@@ -100,13 +101,18 @@ export default function Index() {
   // Handle Prev button click
   const handlePrev = () => {
     const prevIndex = (currentIndex - 1 + images.length) % images.length;
-    setCurrentIndex(prevIndex);
-    flatListRef.current.scrollToIndex({ animated: true, index: prevIndex });
+    // setCurrentIndex(prevIndex);
+    flatListRef.current.scrollToIndex({
+      animated: true,
+      index: prevIndex,
+      viewPosition: 0.5,
+    });
 
     // Manually update scrollX after scrolling
     Animated.spring(scrollX, {
       toValue: (prevIndex * width) / 2, // Set scrollX to the correct position
       useNativeDriver: true,
+      // viewPosition: 0.5,
     }).start();
   };
 
@@ -116,20 +122,20 @@ export default function Index() {
     { useNativeDriver: false } // Not using native driver because we want to update the index
   );
 
-  // // Update the current index when scrolling
-  // useEffect(() => {
-  //   const listener = scrollX.addListener(({ value }) => {
-  //     const newIndex = Math.floor(value / width);
-  //     if (newIndex !== currentIndex) {
-  //       setCurrentIndex(newIndex);
-  //     }
-  //   });
+  // Update the current index when scrolling
+  useEffect(() => {
+    const listener = scrollX.addListener(({ value }) => {
+      const newIndex = Math.round((value / width) * 2);
+      if (newIndex !== currentIndex) {
+        setCurrentIndex(newIndex);
+      }
+    });
 
-  //   // Cleanup listener when the component unmounts
-  //   return () => {
-  //     scrollX.removeListener(listener);
-  //   };
-  // }, [scrollX, currentIndex]);
+    // Cleanup listener when the component unmounts
+    return () => {
+      scrollX.removeListener(listener);
+    };
+  }, [scrollX, currentIndex]);
 
   return (
     <View style={styles.container}>
@@ -147,8 +153,59 @@ export default function Index() {
           initialScrollIndex={currentIndex}
           scrollEventThrottle={16} // Smooth scrolling
           snapToInterval={width / 2} // Snap to each item
-          decelerationRate="fast"
+          decelerationRate={"fast"}
         />
+
+        {/* The overlay */}
+        {overlayVisible && (
+          <Animated.View
+            style={[
+              styles.overlay,
+              {
+                opacity: overlayAnim,
+                transform: [
+                  {
+                    scale: overlayAnim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [0, 1], // Grow from 0 to 1
+                    }),
+                  },
+                ],
+                padding: 16,
+              },
+            ]}
+          >
+            <Animated.View
+              style={[styles.overlayClose, { marginLeft: 16, marginRight: 16 }]}
+            >
+              <Image
+                source={{ uri: images[currentIndex].source }}
+                style={
+                  (styles.image,
+                  {
+                    width: width - 128,
+                    height: width - 128,
+                  })
+                }
+              />
+
+              <View
+                style={{
+                  justifyContent: "flex-start",
+                  alignItems: "flex-end",
+                  marginTop: 32,
+                }}
+              >
+                <TouchableOpacity
+                  style={[styles.button, { marginLeft: 8 }]}
+                  onPress={hideOverlay}
+                >
+                  <Text style={styles.overlayText}>Close Overlay</Text>
+                </TouchableOpacity>
+              </View>
+            </Animated.View>
+          </Animated.View>
+        )}
 
         <View style={styles.buttons}>
           <TouchableOpacity style={styles.button} onPress={handlePrev}>
@@ -192,6 +249,7 @@ const styles = StyleSheet.create({
     marginTop: 20,
     justifyContent: "space-between",
     width: width - 40,
+    paddingBottom: 32,
   },
   button: {
     backgroundColor: "#000",
@@ -202,5 +260,25 @@ const styles = StyleSheet.create({
   buttonText: {
     color: "#fff",
     fontSize: 16,
+  },
+  overlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    width,
+    height,
+    backgroundColor: "rgba(0, 0, 0, 0.7)",
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 1000,
+  },
+  overlayClose: {
+    padding: 20,
+    backgroundColor: "#fff",
+    borderRadius: 10,
+  },
+  overlayText: {
+    fontSize: 18,
+    color: "#FFFFFF",
   },
 });
