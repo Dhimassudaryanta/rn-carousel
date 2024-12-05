@@ -94,7 +94,6 @@ export default function Index() {
     Animated.spring(scrollX, {
       toValue: (nextIndex * width) / 2, // Set scrollX to the correct position
       useNativeDriver: true,
-      viewPosition: 0.5,
     }).start();
   };
 
@@ -112,7 +111,6 @@ export default function Index() {
     Animated.spring(scrollX, {
       toValue: (prevIndex * width) / 2, // Set scrollX to the correct position
       useNativeDriver: true,
-      // viewPosition: 0.5,
     }).start();
   };
 
