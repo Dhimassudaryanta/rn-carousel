@@ -4,14 +4,17 @@ This is an [Expo](https://expo.dev) project created with [`create-expo-app`](htt
 
 ## How to install
 
-1. Clone the project ```git clone```
-2. Install dependencies
+1. Clone the project 
+   ```bash
+   git clone
+   ```
+3. Install dependencies
 
    ```bash
    npm install
    ```
 
-3. Start the app
+4. Start the app
 
    ```bash
     npx expo start
