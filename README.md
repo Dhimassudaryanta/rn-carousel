@@ -7,14 +7,6 @@ https://github.com/user-attachments/assets/be74a587-f38a-4d0e-ba4b-f7fe921cf1ce
 This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
 
 ## React Native Carousel
-   IOS :
-   
-   Uploading Screen Recording 2024-12-05 at 10.mp4…
-
-   Android : 
-   
-   Uploading Screen Recording 2024-12-05 at 10 (1).mp4…
-
 
 ## How to install
 
