@@ -1,6 +1,20 @@
+
+https://github.com/user-attachments/assets/d3cd95ba-beaf-4a38-b27a-77b92a97d703
+
+https://github.com/user-attachments/assets/be74a587-f38a-4d0e-ba4b-f7fe921cf1ce
 # Welcome to your Expo app 👋
 
 This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+
+## React Native Carousel
+   IOS :
+   
+   Uploading Screen Recording 2024-12-05 at 10.mp4…
+
+   Android : 
+   
+   Uploading Screen Recording 2024-12-05 at 10 (1).mp4…
+
 
 ## How to install
 
@@ -27,5 +41,7 @@ In the output, you'll find options to open the app in a
 - [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
 - [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+
+
+
 
