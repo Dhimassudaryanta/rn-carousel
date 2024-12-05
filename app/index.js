@@ -60,7 +60,20 @@ export default function Index() {
     });
 
     return (
-      <Animated.View style={[styles.item, { transform: [{ scale }] }]}>
+      <Animated.View
+        style={[
+          styles.item,
+          {
+            transform: [{ scale }],
+            paddingLeft: index === 0 ? width / 2 : width / 4,
+            paddingRight: index === images.length - 1 ? width / 2 : width / 4,
+
+            // paddingLeft: width / 2,
+            // paddingRight: width / 2,
+            width: width / 4,
+          },
+        ]}
+      >
         <Image source={{ uri: item.source }} style={styles.image} />
       </Animated.View>
     );
@@ -70,12 +83,17 @@ export default function Index() {
   const handleNext = () => {
     const nextIndex = (currentIndex + 1) % images.length;
     setCurrentIndex(nextIndex);
-    flatListRef.current.scrollToIndex({ animated: true, index: nextIndex });
+    flatListRef.current.scrollToIndex({
+      animated: true,
+      index: nextIndex,
+      viewPosition: 0.5,
+    });
 
     // Manually update scrollX after scrolling
     Animated.spring(scrollX, {
       toValue: (nextIndex * width) / 2, // Set scrollX to the correct position
       useNativeDriver: true,
+      viewPosition: 0.5,
     }).start();
   };
 
@@ -113,8 +131,6 @@ export default function Index() {
   //   };
   // }, [scrollX, currentIndex]);
 
-  console.log("cek ya", currentIndex);
-
   return (
     <View style={styles.container}>
       <View style={styles.carouselContainer}>
@@ -127,9 +143,9 @@ export default function Index() {
           showsHorizontalScrollIndicator={false}
           // scrollEnabled={false} // Disable default scrolling behavior
           onScroll={handleScroll} // Track scrolling
-          scrollEventThrottle={16} // Smooth scrolling
           contentContainerStyle={styles.carousel}
           initialScrollIndex={currentIndex}
+          scrollEventThrottle={16} // Smooth scrolling
           snapToInterval={width / 2} // Snap to each item
           decelerationRate="fast"
         />
@@ -163,7 +179,7 @@ const styles = StyleSheet.create({
   item: {
     justifyContent: "center",
     alignItems: "center",
-    width: width / 2,
+    // width: width / 2,
   },
   image: {
     width: width / 2,
